@@ -4,6 +4,26 @@ End-to-end churn solution for a telecommunications retention team: data preparat
 
 Dataset: IBM Telco Customer Churn (7,043 customers, 21 columns). Target: `Churn` (Yes/No).
 
+## Important URLs
+
+| Resource | URL | Purpose |
+|---|---|---|
+| GitHub Repository | https://github.com/aranimondal/customer-churn-prediction | Complete project source code and documentation |
+| GitHub README | https://github.com/aranimondal/customer-churn-prediction/blob/main/README.md | Project overview, setup and usage guide |
+| Swagger UI | http://127.0.0.1:8000/docs | Interactive API UI — test `/health` and `/predict` in the browser |
+| ReDoc | http://127.0.0.1:8000/redoc | Alternative interactive API documentation |
+| OpenAPI JSON | http://127.0.0.1:8000/openapi.json | Machine-readable API specification |
+| Health API | http://127.0.0.1:8000/health | Check whether the API and model artifact are available |
+| Prediction API | http://127.0.0.1:8000/predict | POST customer data and receive churn prediction + probability |
+| Sample Request | https://github.com/aranimondal/customer-churn-prediction/blob/main/sample_request.json | Ready-to-use example payload for `/predict` |
+| Analysis Notebook | https://github.com/aranimondal/customer-churn-prediction/blob/main/notebook/churn_analysis.ipynb | EDA, feature engineering, model training and evaluation |
+| Trained Model | https://github.com/aranimondal/customer-churn-prediction/blob/main/model/churn_model.pkl | Persisted scikit-learn model pipeline used by the API |
+| Test Suite | https://github.com/aranimondal/customer-churn-prediction/blob/main/tests/test_pipeline.py | Automated data, pipeline and API tests |
+| GitHub Actions | https://github.com/aranimondal/customer-churn-prediction/actions | CI test execution and build status |
+
+> **Local application URLs:** Start the API with `uvicorn app:app --reload` before opening the Swagger UI, ReDoc, OpenAPI, Health API, or Prediction API URLs above. These `127.0.0.1` URLs are available only on the machine where the application is running.
+
+
 ## Why the design looks like this
 
 The one decision that shapes everything else is that **all preprocessing lives inside a single scikit-learn `Pipeline`**, and both the notebook and the API import the same modules from `src/`. There is no second copy of the feature logic to drift out of sync, and the artifact loaded by the API is byte-identical to the one fitted in training. Two consequences worth noting:
