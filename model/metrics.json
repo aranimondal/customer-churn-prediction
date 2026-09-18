@@ -1,0 +1,87 @@
+{
+  "selected_configuration": "balanced_pruned",
+  "selection_metric": "recall",
+  "configuration_comparison": {
+    "baseline_unpruned": {
+      "cv_accuracy": 0.733265720081136,
+      "cv_precision": 0.497152366632557,
+      "cv_recall": 0.5129770992366413,
+      "cv_f1": 0.5047704482655714,
+      "params": {
+        "criterion": "gini"
+      }
+    },
+    "pruned_gini": {
+      "cv_accuracy": 0.7896551724137931,
+      "cv_precision": 0.6245563906247554,
+      "cv_recall": 0.5283173934661168,
+      "cv_f1": 0.56898466625891,
+      "params": {
+        "criterion": "gini",
+        "max_depth": 5,
+        "min_samples_split": 40,
+        "min_samples_leaf": 20
+      }
+    },
+    "pruned_entropy": {
+      "cv_accuracy": 0.789655172413793,
+      "cv_precision": 0.6219238533163998,
+      "cv_recall": 0.5358778625954198,
+      "cv_f1": 0.572832798012109,
+      "params": {
+        "criterion": "entropy",
+        "max_depth": 6,
+        "min_samples_split": 40,
+        "min_samples_leaf": 20
+      }
+    },
+    "balanced_pruned": {
+      "cv_accuracy": 0.7387423935091277,
+      "cv_precision": 0.5063017623083405,
+      "cv_recall": 0.7774853031499518,
+      "cv_f1": 0.6124463928767871,
+      "params": {
+        "criterion": "gini",
+        "max_depth": 5,
+        "min_samples_split": 40,
+        "min_samples_leaf": 20,
+        "class_weight": "balanced"
+      }
+    }
+  },
+  "test_metrics": {
+    "accuracy": 0.7079981069569332,
+    "precision": 0.47125256673511295,
+    "recall": 0.8181818181818182,
+    "f1": 0.5980456026058631,
+    "roc_auc": 0.8300944557766875,
+    "confusion_matrix": {
+      "true_negative": 1037,
+      "false_positive": 515,
+      "false_negative": 102,
+      "true_positive": 459
+    }
+  },
+  "n_rows": 7043,
+  "n_train": 4930,
+  "n_test": 2113,
+  "train_churn_rate": 0.2653144016227181,
+  "test_churn_rate": 0.26549929010885,
+  "top_features": {
+    "Contract_Month-to-month": 0.6084,
+    "tenure": 0.1118,
+    "InternetService_Fiber optic": 0.1013,
+    "MonthlyCharges": 0.054,
+    "TotalCharges": 0.0248,
+    "InternetService_No": 0.0165,
+    "OnlineSecurity_No": 0.0157,
+    "TechSupport_No": 0.0148,
+    "PaymentMethod_Electronic check": 0.0143,
+    "monthly_charge_delta": 0.0127,
+    "StreamingMovies_Yes": 0.0066,
+    "Contract_One year": 0.0059,
+    "PaymentMethod_Mailed check": 0.0051,
+    "Dependents_No": 0.0041,
+    "OnlineBackup_No": 0.0024
+  }
+}
