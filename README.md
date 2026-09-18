@@ -196,3 +196,20 @@ pytest -q
 ## Reproducibility
 
 `random_state=42` throughout (split, CV folds, tree). All paths derive from `src/config.py` relative to the project root, so there are no machine-specific absolute paths.
+
+
+## Bonus: independent model comparison
+
+The required Decision Tree remains the deployed model. As an additional model-family check, `src/bonus_models.py` trains a leakage-safe Logistic Regression pipeline on the same raw input contract and evaluates it with the same 5-fold stratified cross-validation and held-out test metrics (accuracy, precision, recall, F1 and ROC-AUC).
+
+The comparison is intentionally kept separate from model selection: adding another algorithm does not silently change the assignment-required deployed model. This makes the bonus experiment reproducible while preserving the original Decision Tree decision.
+
+## Operational threshold analysis
+
+The API returns a churn probability rather than only a class label. `src/decision_policy.py` provides a small, model-agnostic threshold-sensitivity utility that converts those probabilities into an operational table containing contact volume, contact rate, true positives, false positives, false negatives, precision and recall.
+
+No threshold is selected automatically. The appropriate cut-off is a business capacity decision: a retention team with more contact capacity can work further down the ranked probability list, while a constrained team can use a higher cut-off. This keeps statistical evaluation separate from an unsupported assumption about campaign cost.
+
+## Automated quality gate
+
+A GitHub Actions workflow runs the full `pytest` suite on pushes to `main` and on pull requests. The suite now covers the required data/pipeline/API contracts plus the bonus Logistic Regression path and threshold-analysis validation. This is an execution safeguard only; it does not alter training behaviour or the persisted model.
