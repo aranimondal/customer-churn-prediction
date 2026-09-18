@@ -16,6 +16,8 @@ from fastapi.testclient import TestClient
 from src import config, data
 from src.features import ChurnFeatureBuilder
 from src.pipeline import build_pipeline, feature_names
+from src.bonus_models import build_logistic_pipeline
+from src.decision_policy import threshold_sensitivity
 
 
 @pytest.fixture(scope="module")
@@ -232,3 +234,50 @@ def test_predict_ignores_customer_id(client, sample_payload):
         "/predict", json={**sample_payload, "customerID": "9999-ZZZZZ"}
     ).json()
     assert base == with_id
+
+
+# --------------------------------------------------------------------------- #
+# Bonus model and decision policy
+# --------------------------------------------------------------------------- #
+def test_bonus_logistic_pipeline_trains_and_predicts(clean_df):
+    """The additional-model comparison must remain executable and leakage-safe."""
+    X, y = data.split_features_target(clean_df)
+    pipe = build_logistic_pipeline().fit(X, y)
+    proba = pipe.predict_proba(X.head(10))[:, 1]
+    assert proba.shape == (10,)
+    assert np.isfinite(proba).all()
+    assert ((proba >= 0.0) & (proba <= 1.0)).all()
+
+
+def test_bonus_logistic_pipeline_tolerates_unseen_category(clean_df):
+    X, y = data.split_features_target(clean_df)
+    pipe = build_logistic_pipeline().fit(X, y)
+    odd = X.head(1).copy()
+    odd.loc[odd.index[0], "PaymentMethod"] = "Cryptocurrency"
+    assert pipe.predict_proba(odd).shape == (1, 2)
+
+
+def test_threshold_sensitivity_returns_operational_metrics():
+    result = threshold_sensitivity(
+        [0, 0, 1, 1], [0.10, 0.40, 0.60, 0.90], thresholds=[0.50, 0.80]
+    )
+    assert list(result.columns) == [
+        "threshold", "customers_contacted", "contact_rate",
+        "true_positives", "false_positives", "false_negatives",
+        "precision", "recall",
+    ]
+    assert result.loc[0, "customers_contacted"] == 2
+    assert result.loc[0, "true_positives"] == 2
+    assert result.loc[0, "false_negatives"] == 0
+    assert result.loc[1, "customers_contacted"] == 1
+    assert result.loc[1, "recall"] == 0.5
+
+
+def test_threshold_sensitivity_rejects_invalid_probability():
+    with pytest.raises(ValueError, match="between 0 and 1"):
+        threshold_sensitivity([0, 1], [0.2, 1.2])
+
+
+def test_threshold_sensitivity_rejects_mismatched_lengths():
+    with pytest.raises(ValueError, match="equal length"):
+        threshold_sensitivity([0, 1], [0.2])
