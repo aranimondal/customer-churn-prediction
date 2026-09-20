@@ -136,22 +136,17 @@ Allowed categorical values are transcribed from the supplied data dictionary int
 
 ## Engineered features
 
-One engineered feature survives in the model. Three were built; two were measured and removed.
+Three domain-motivated features are created by the stateless transformer and carried through the reusable train/API pipeline.
 
-| Feature | Construction | Rationale |
+| Feature | Construction | Business rationale |
 |---|---|---|
-| `monthly_charge_delta` | `MonthlyCharges − TotalCharges/tenure`, defined as 0 when `tenure = 0` | Measures whether the current bill has crept above what the customer is used to paying — a concrete price-shock trigger that neither raw column expresses on its own. Measured importance **0.0127**. |
+| `monthly_charge_delta` | `MonthlyCharges − TotalCharges/tenure`, defined as 0 when `tenure = 0` | Highlights a customer's current bill relative to their historical average monthly spend — a simple price-change signal. |
+| `num_addon_services` | Count of the six optional services whose value is `Yes` | Captures breadth of the customer's service bundle. It provides a compact view of engagement while retaining the six raw service flags for the model. |
+| `tenure_bucket` | Fixed lifecycle bands: `0-12`, `13-24`, `25-48`, `49+` months | Gives the model a business-readable lifecycle view alongside the raw continuous tenure value. |
 
-### Removed: `num_addon_services` and `tenure_bucket`
+All three are row-local calculations: they use only information belonging to the customer being scored, so they do not learn statistics from the target or from other rows. The raw fields remain available as well; the Decision Tree can choose the representation that gives the strongest split.
 
-Both were dropped after measuring feature importance on the fitted trees. Each scored an importance of **exactly 0.0 in all three pruned configurations** — no tree ever selected them for a split. Only the deliberately unpruned overfitting baseline touched them at all.
-
-- `num_addon_services` (count of `Yes` across the six optional add-ons) was meant to collapse six correlated flags into one stickiness score. In practice the tree prefers the raw add-on columns, which remain in the feature set — and the EDA shows why: support add-ons (`OnlineSecurity`, `TechSupport`) behave protectively while streaming add-ons barely move churn, so a single undifferentiated count flattens exactly the distinction that carries the signal.
-- `tenure_bucket` (`tenure` cut at fixed 12/24/48-month boundaries) was meant to express the steep non-linearity in churn-vs-tenure. That non-linearity is real, but a decision tree already finds its own tenure thresholds and is strictly more flexible than a fixed banding. Raw `tenure` remains and is the **second most important feature in the model (0.1118)**.
-
-Neither removal discarded information, and the evidence is direct: the held-out test metrics are **identical before and after** (accuracy 0.7080, recall 0.8182 both ways). The encoded feature space shrank from 51 columns to 46. Two engineered features that earn their place beat three where one is dead weight.
-
-The honest caveat: a 0.0 importance means the tree found those columns redundant *given the raw columns it kept*, not that add-on count or tenure banding are irrelevant to churn in general.
+The notebook also checks these engineered features directly and reports their relationship with churn. Feature importance is used later to show which representations the fitted tree actually relies on. A feature having low importance is treated as a modelling result, not as a reason to remove a requirement from the assignment.
 
 ## Model selection
 
