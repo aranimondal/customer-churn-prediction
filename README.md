@@ -207,18 +207,24 @@ Two caveats stated explicitly, because they are easy to overstate: Gini importan
 pytest -q
 ```
 
-19 tests covering the documented `TotalCharges` defect, identifier and target exclusion, statelessness of the feature transformer, the `tenure = 0` division guard, artifact round-trip equality, a regression guard that the two removed features stay removed, and API success and validation-failure paths. The API tests skip cleanly if the model artifact has not been trained yet.
+24 tests covering the documented `TotalCharges` defect, identifier and target exclusion, statelessness of the feature transformer, the `tenure = 0` division guard, artifact round-trip equality, a regression guard that the two removed features stay removed, and API success and validation-failure paths. The API tests skip cleanly if the model artifact has not been trained yet.
 
 ## Reproducibility
 
 `random_state=42` throughout (split, CV folds, tree). All paths derive from `src/config.py` relative to the project root, so there are no machine-specific absolute paths.
 
 
+## Bonus: hyperparameter search
+
+The notebook also runs a `GridSearchCV` over tree depth, minimum leaf size, split criterion and class weighting. It is intentionally treated as a diagnostic rather than silently replacing the assignment's reproducible four-configuration selection. A recall-only search can favour an overly aggressive classifier, so the notebook compares the grid result with precision/F1 before deciding whether it is suitable.
+
 ## Bonus: independent model comparison
 
 The required Decision Tree remains the deployed model. As an additional model-family check, `src/bonus_models.py` trains a leakage-safe Logistic Regression pipeline on the same raw input contract and evaluates it with the same 5-fold stratified cross-validation and held-out test metrics (accuracy, precision, recall, F1 and ROC-AUC).
 
 The comparison is intentionally kept separate from model selection: adding another algorithm does not silently change the assignment-required deployed model. This makes the bonus experiment reproducible while preserving the original Decision Tree decision.
+
+The notebook also includes the threshold-sensitivity analysis and a readable depth-limited tree/rule representation, giving the retention team both the statistical trade-off and a human-readable view of the model.
 
 ## Operational threshold analysis
 
