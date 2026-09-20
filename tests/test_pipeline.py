@@ -79,20 +79,15 @@ def test_identifier_and_target_excluded_from_features(clean_df):
 # --------------------------------------------------------------------------- #
 # Feature engineering
 # --------------------------------------------------------------------------- #
-def test_removed_features_are_absent():
-    """num_addon_services and tenure_bucket were dropped for zero importance.
-
-    Guards against a well-meaning reintroduction: both measured exactly 0.0
-    importance on every pruned tree, and the raw add-on columns plus raw tenure
-    already carry the same information.
-    """
+def test_engineered_features_are_present():
+    """The assignment requires at least two meaningful engineered features."""
     row = {c: "No" for c in config.MODEL_INPUT_COLUMNS}
     row.update(
         {
             "SeniorCitizen": 0,
-            "tenure": 10,
-            "MonthlyCharges": 50.0,
-            "TotalCharges": 500.0,
+            "tenure": 18,
+            "MonthlyCharges": 60.0,
+            "TotalCharges": 900.0,
             "gender": "Male",
             "InternetService": "DSL",
             "Contract": "Month-to-month",
@@ -105,13 +100,11 @@ def test_removed_features_are_absent():
     out = ChurnFeatureBuilder().fit_transform(
         pd.DataFrame([row])[config.MODEL_INPUT_COLUMNS]
     )
-    assert "num_addon_services" not in out.columns
-    assert "tenure_bucket" not in out.columns
-    assert "num_addon_services" not in config.NUMERIC_FEATURES
-    assert "tenure_bucket" not in config.CATEGORICAL_FEATURES
-    # The six raw add-on columns must still be present as model inputs.
-    for col in config.ADDON_SERVICES:
-        assert col in config.MODEL_INPUT_COLUMNS
+    assert "monthly_charge_delta" in out.columns
+    assert "num_addon_services" in out.columns
+    assert "tenure_bucket" in out.columns
+    assert out["num_addon_services"].iloc[0] == 3.0
+    assert out["tenure_bucket"].iloc[0] == "13-24"
 
 
 def test_charge_delta_handles_zero_tenure():
