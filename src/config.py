@@ -70,15 +70,11 @@ RAW_CATEGORICAL_FEATURES = [
 
 # Columns produced by ChurnFeatureBuilder (see src/features.py).
 #
-# `num_addon_services` and `tenure_bucket` were removed after measuring
-# feature importance on the fitted trees: both scored exactly 0.0 in all three
-# pruned configurations, i.e. the tree never chose to split on them. Neither
-# discarded any information, because the six raw add-on columns and the raw
-# `tenure` value they were derived from remain in the feature set and the tree
-# splits on those directly. `monthly_charge_delta` is retained: it is the one
-# engineered feature the model actually uses.
-ENGINEERED_NUMERIC_FEATURES = ["monthly_charge_delta"]
-ENGINEERED_CATEGORICAL_FEATURES = []
+# These are deliberately part of the reusable train/API feature path. They are
+# domain-motivated views of existing fields; the raw fields remain available so
+# the tree can choose whichever representation carries useful signal.
+ENGINEERED_NUMERIC_FEATURES = ["monthly_charge_delta", "num_addon_services"]
+ENGINEERED_CATEGORICAL_FEATURES = ["tenure_bucket"]
 
 NUMERIC_FEATURES = RAW_NUMERIC_FEATURES + ENGINEERED_NUMERIC_FEATURES
 CATEGORICAL_FEATURES = RAW_CATEGORICAL_FEATURES + ENGINEERED_CATEGORICAL_FEATURES
