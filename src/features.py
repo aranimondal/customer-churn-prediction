@@ -21,31 +21,15 @@ from . import config
 
 
 class ChurnFeatureBuilder(BaseEstimator, TransformerMixin):
-    """Adds one domain-motivated feature to the raw Telco columns.
+    """Add domain features without learning state from the dataset.
 
-    ``monthly_charge_delta`` -- ``MonthlyCharges - TotalCharges / tenure``,
-        i.e. the gap between what the customer pays today and their historical
-        average monthly spend. A large positive value means the bill has crept
-        up relative to what they are used to paying, which is a classic trigger
-        for shopping around. Guarded against tenure == 0, where no billing
-        history exists and the delta is defined as 0.
-
-    Removed features
-    ----------------
-    ``num_addon_services`` (count of the six optional add-ons) and
-    ``tenure_bucket`` (tenure discretised into 0-12 / 13-24 / 25-48 / 49+)
-    were both dropped. Measured on the fitted model, each scored an importance
-    of exactly 0.0 in all three pruned configurations -- the tree never chose to
-    split on either one. The hypotheses behind them were reasonable (add-ons
-    raise switching cost; churn risk is non-linear in tenure) but the tree
-    already captures both effects directly: it splits on the raw add-on columns
-    and finds its own tenure thresholds, which is strictly more flexible than a
-    fixed bucketing. Keeping them would have added encoded columns that carry no
-    signal, so no information was lost by removing them.
+    monthly_charge_delta compares today's charge with the customer's
+    historical average monthly spend. It is a simple price-change signal.
+    num_addon_services captures service breadth, while tenure_bucket
+    exposes broad customer lifecycle stages alongside raw tenure.
     """
 
     def fit(self, X: pd.DataFrame, y=None) -> "ChurnFeatureBuilder":
-        # Stateless: nothing is learned from the data.
         return self
 
     def transform(self, X: pd.DataFrame) -> pd.DataFrame:
@@ -59,8 +43,17 @@ class ChurnFeatureBuilder(BaseEstimator, TransformerMixin):
             where=tenure > 0,
         )
         delta = out["MonthlyCharges"].to_numpy(dtype=float) - avg_monthly
-        # tenure == 0 => no history to compare against; neutral value.
         out["monthly_charge_delta"] = np.where(tenure > 0, delta, 0.0)
+
+        out["num_addon_services"] = (
+            out[config.ADDON_SERVICES].eq("Yes").sum(axis=1).astype(float)
+        )
+
+        out["tenure_bucket"] = pd.cut(
+            out["tenure"],
+            bins=[-1, 12, 24, 48, np.inf],
+            labels=["0-12", "13-24", "25-48", "49+"],
+        ).astype(str)
 
         return out
 
