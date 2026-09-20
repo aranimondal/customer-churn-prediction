@@ -20,6 +20,7 @@ Dataset: IBM Telco Customer Churn (7,043 customers, 21 columns). Target: `Churn`
 | Trained Model | https://github.com/aranimondal/customer-churn-prediction/blob/main/model/churn_model.pkl | Persisted scikit-learn model pipeline used by the API |
 | Test Suite | https://github.com/aranimondal/customer-churn-prediction/blob/main/tests/test_pipeline.py | Automated data, pipeline and API tests |
 | GitHub Actions | https://github.com/aranimondal/customer-churn-prediction/actions | CI test execution and build status |
+| Local Development & Evaluation Guide | https://github.com/aranimondal/customer-churn-prediction/blob/main/DEVELOPMENT.md | Step-by-step local setup, testing, model training and development-mode API startup |
 
 > **Local application URLs:** Start the API with `uvicorn app:app --reload` before opening the Swagger UI, ReDoc, OpenAPI, Health API, or Prediction API URLs above. These `127.0.0.1` URLs are available only on the machine where the application is running.
 
